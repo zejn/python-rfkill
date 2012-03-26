@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#   rfkillgtk.py
+#   traykillqt.py
 #   
 #   Copyright 2012 Gasper Zejn <zejn@kiberpipa.org>
 #   
@@ -37,18 +37,18 @@ IGNORE_LIST = [
     'phy0',
     ]
 
-import rfkill
-
+import os
 import sys
-import signal
-
+import rfkill
 from PyQt4 import QtGui
-from PyQt4.QtCore import QTimer
 
+def get_icon(icon):
+    f = __file__
+    if os.path.islink(f):
+        f = os.readlink(f)
+    return os.path.abspath(os.path.join(os.path.dirname(f), 'icons', icon))
 
-def sigint_handler(*args):
-    sys.stderr.write('interrupted\n')
-    QtGui.QApplication.quit()
+DEBUG = False
 
 class SystemTrayIcon(QtGui.QSystemTrayIcon):
     NAME_MAP = {
@@ -60,9 +60,9 @@ class SystemTrayIcon(QtGui.QSystemTrayIcon):
     def __init__(self, icon, parent=None):
         QtGui.QSystemTrayIcon.__init__(self, icon, parent)
 
-        self.icon_on = QtGui.QIcon("icons/user-online.png")
-        self.icon_mixed = QtGui.QIcon("icons/user-invisible.png")
-        self.icon_off = QtGui.QIcon("icons/user-busy.png")
+        self.icon_on = QtGui.QIcon(get_icon("user-online.png"))
+        self.icon_mixed = QtGui.QIcon(get_icon("user-invisible.png"))
+        self.icon_off = QtGui.QIcon(get_icon("user-busy.png"))
 
         self.switches = rfkill.list_switches(IGNORE_LIST)
         self.refreshIconState()
@@ -123,12 +123,19 @@ class SystemTrayIcon(QtGui.QSystemTrayIcon):
 def main():
     app = QtGui.QApplication(sys.argv)
     w = QtGui.QWidget()
-    trayIcon = SystemTrayIcon(QtGui.QIcon("icons/user-invisible.png"), w)
+    trayIcon = SystemTrayIcon(QtGui.QIcon(get_icon("user-invisible.png")), w)
     trayIcon.show()
-    signal.signal(signal.SIGINT, sigint_handler)
-    timer = QTimer()
-    timer.start(100)  # You may change this if you wish.
-    timer.timeout.connect(lambda: None)  # Let the interpreter run each 500 ms.
+    if DEBUG:
+        import signal
+        from PyQt4.QtCore import QTimer
+
+        def sigint_handler(*args):
+            sys.stderr.write('interrupted\n')
+            QtGui.QApplication.quit()
+        signal.signal(signal.SIGINT, sigint_handler)
+        timer = QTimer()
+        timer.start(100)
+        timer.timeout.connect(lambda: None)
     sys.exit(app.exec_())
 
 if __name__ == '__main__':

@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-#   rfkillgtk.py
+#   traykillwx.py
 #   
 #   Copyright 2012 Gasper Zejn <zejn@kiberpipa.org>
 #   
